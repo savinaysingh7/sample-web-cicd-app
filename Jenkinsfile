@@ -1,9 +1,8 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'sample-web-app'
-        PORT = '3000'
+    triggers {
+        githubPush()
     }
 
     stages {
@@ -16,7 +15,9 @@ pipeline {
         stage('Build-Website') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE} ."
+                    sh 'echo "Building website source from Git commit..."'
+                    sh 'test -f app.js'
+                    sh 'grep -n "Webhook test" app.js'
                 }
             }
         }
@@ -31,9 +32,9 @@ pipeline {
         stage('Deploy-Website') {
             steps {
                 script {
-                    sh "docker stop ${DOCKER_IMAGE} || true"
-                    sh "docker rm ${DOCKER_IMAGE} || true"
-                    sh "docker run -d --name ${DOCKER_IMAGE} -p ${PORT}:3000 ${DOCKER_IMAGE}"
+                    sh 'mkdir -p /var/jenkins_home/deployments/sample-web-cicd-app'
+                    sh 'cp app.js /var/jenkins_home/deployments/sample-web-cicd-app/app.js'
+                    sh 'echo "Deployed app.js to /var/jenkins_home/deployments/sample-web-cicd-app"'
                 }
             }
         }
