@@ -78,3 +78,69 @@ What this script does:
 1. Creates a GitHub push webhook to `JENKINS_URL/github-webhook/` (if missing)
 2. Installs Jenkins plugin `Pipeline: Stage View` (`pipeline-stage-view`)
 3. Triggers `Git-Job` to start your chain
+
+## Complete Local Jenkins Setup (Automated)
+
+A local Jenkins environment has been configured with the full pipeline chain:
+
+### Running Jenkins Locally
+
+Jenkins is running in Docker at `http://localhost:8080`:
+
+**Access Jenkins:**
+- URL: `http://localhost:8080`
+- No authentication required (lab setup)
+
+**Pipeline View Plugin:** Installed
+- Navigate to `Git-Job` > `Stage View` to visualize the pipeline stages
+
+### Job Chain Status
+
+The following jobs are configured and chained:
+
+1. **Git-Job** (Pipeline job via Jenkinsfile)
+   - Trigger: GitHub push via webhook
+   - Post-build: Triggers `Build-Website` on SUCCESS
+   
+2. **Build-Website** (Freestyle job)
+   - Verify source code includes latest website change
+   - Post-build: Triggers `Deploy-Website` on SUCCESS
+   
+3. **Deploy-Website** (Freestyle job)
+   - Copies app.js to `/var/jenkins_home/deployments/sample-web-cicd-app/`
+   - Confirms deployment of changes
+
+### Testing the Pipeline
+
+**Manual trigger:**
+
+```bash
+# Access Jenkins CLI (inside container)
+docker exec jenkins-local curl -X POST http://localhost:8080/job/Git-Job/build
+```
+
+**Via Git push (requires smee relay):**
+
+```bash
+# Make a change and push
+git add .
+git commit -m "Test pipeline trigger"
+git push origin main
+# Jenkins will automatically trigger Git-Job
+```
+
+### View Pipeline Results
+
+1. Open Jenkins: `http://localhost:8080`
+2. Click `Git-Job`
+3. View recent builds
+4. Click a build number to see full pipeline execution
+5. Navigate to `Stage View` tab to see Git-Job > Build-Website > Deploy-Website flow
+
+### Verify Deployment
+
+```bash
+# Check deployed artifact
+docker exec jenkins-local ls -lh /var/jenkins_home/deployments/sample-web-cicd-app/app.js
+docker exec jenkins-local cat /var/jenkins_home/deployments/sample-web-cicd-app/app.js | grep "Webhook test"
+```
