@@ -7,13 +7,13 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Git-Job') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build-Website') {
             steps {
                 script {
                     sh "docker build -t ${DOCKER_IMAGE} ."
@@ -28,7 +28,7 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy-Website') {
             steps {
                 script {
                     sh "docker stop ${DOCKER_IMAGE} || true"
