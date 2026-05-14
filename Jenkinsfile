@@ -25,7 +25,15 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                sh "echo 'Tests passed'"
+                // Simulating a random test outcome to show CI/CD gating
+                sh '''
+                if [ $((RANDOM % 2)) -eq 0 ]; then
+                    echo "Tests failed! Oh no!"
+                    exit 1
+                else
+                    echo "Tests passed!"
+                fi
+                '''
             }
         }
 
@@ -37,6 +45,18 @@ pipeline {
                     sh 'echo "Deployed app.js to /var/jenkins_home/deployments/sample-web-cicd-app"'
                 }
             }
+        }
+    }
+    
+    post {
+        always {
+            echo "Pipeline finished execution."
+        }
+        success {
+            echo "SUCCESS: Everything passed, and the website is deployed!"
+        }
+        failure {
+            echo "FAILURE: Tests failed! Deployment has been blocked."
         }
     }
 }
